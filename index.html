@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Word-O-Matic SuggestR</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Word-O-Matic SuggestR">
+  <meta name="author" content="Luis A Sandino - September 2017">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Word-O-Matic SuggestR</h1>
+    <h2>A Shiny Application by</h2>
+    <p>Luis A Sandino - September 2017<br/>la.sandino [at] gmail.com</p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    
+<slide class="" id="slide-2" style="background:;">
+  <hgroup>
+    <h2>Instructions</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><span style=font-size:smaller>
+<em>Word-O-Matic</em> SuggestR is a Shiny application developed as part of the Coursera Data Science Specialization Capstone Project. It tries to predict which word comes next based on the last three words of an English sentence written by the user. Additionally, it includes a random text generator.</span></p>
+
+<div style='float:left;width:48%;' class='centered'>
+  <p><span style=font-size:smaller><strong>Main Application:</strong> To confirm the input in the text box (1) press the <strong>Enter</strong> key. To clear the box click on the <strong>Clear</strong> button (2). Click on the <strong>Options</strong> tab (3) to change some presentation settings. Options include number of word suggestions, show/hide probability estimates and the application theme.
+<strong>Random Generator:</strong> Select a seed number in the numeric input box (4) and click on the <strong>Generate!</strong> button (5). The slider (6) controls the number of words generated. By default, the next word is always randomly selected from the 10 words with highest probability. Uncheck the option (7) to always use the most likely word.</span></p>
+
+</div>
+<div style='float:right;width:48%;'>
+  <div align=center>
+<img width=100% src="assets/img/capture2.png"></img>
+</div>
+
+</div>
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>How it works?</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The application is based on a 4-gram model built with 10% of randomly selected text lines extracted from the given text corpus. </p>
+
+<p>For details of the pre-processing steps taken to build the model see this <a href=https://rpubs.com/lsandino/milestone>report</a>.</p>
+
+<p>Singletons were removed from the n-gram tables to reduce the model size. The following table summarizes the obtained model:</p>
+
+<table><thead>
+<tr>
+<th align="left">Table</th>
+<th align="right">Length</th>
+<th align="right">File Size (MB)</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="left">unigrams</td>
+<td align="right">60454</td>
+<td align="right">0.29</td>
+</tr>
+<tr>
+<td align="left">bigrams</td>
+<td align="right">703373</td>
+<td align="right">2.95</td>
+</tr>
+<tr>
+<td align="left">trigrams</td>
+<td align="right">798655</td>
+<td align="right">3.71</td>
+</tr>
+<tr>
+<td align="left">tetragrams</td>
+<td align="right">413089</td>
+<td align="right">2.38</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-4" style="background:;">
+  <hgroup>
+    <h2>How it works?</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The next word probabilities are estimated with the Katz Back-Off algorithm with smoothing starting the search in the 4-gram table and going back to the unigrams:</p>
+
+<p>\[\scriptsize
+\begin{align*}
+P_{BO}\left(w_{i}|w_{i-1},w_{i-2},w_{i-3}\right) & =\begin{cases}
+\frac{Count^{*}\left(w_{i-3},w_{i-2},w_{i-1},w_{i}\right)}{\underset{i}{\sum}Count^{*}\left(w_{i-3},w_{i-2},w_{i-1},w_{i}\right)} & w_{i}\in A=\left\{ w:Count\left(w_{i-3},w_{i-2},w_{i-1},w\right)>0\right\} \\
+\alpha_{3}P_{BO}\left(w_{i}|w_{i-1},w_{i-2}\right) & w_{i}\notin A
+\end{cases}\\
+P_{BO}\left(w_{i}|w_{i-1},w_{i-2}\right) & =\begin{cases}
+\frac{Count^{*}\left(w_{i-2},w_{i-1},w_{i}\right)}{\underset{i}{\sum}Count^{*}\left(w_{i-2},w_{i-1},w_{i}\right)} & w_{i}\in B=\left\{ w:Count\left(w_{i-2},w_{i-1},w\right)>0\right\} \backslash A\\
+\alpha_{2}P_{BO}\left(w_{i}|w_{i-1}\right) & w_{i}\notin B
+\end{cases}\\
+P_{BO}\left(w_{i}|w_{i-1}\right) & =\begin{cases}
+\frac{Count^{*}\left(w_{i-1},w_{i}\right)}{\underset{i}{\sum}Count^{*}\left(w_{i-1},w_{i}\right)} & w_{i}\in C=\left\{ w:Count\left(w_{i-1},w\right)>0\right\} \backslash B\\
+\alpha_{1}P_{BO}\left(w_{i}\right) & w_{i}\notin C
+\end{cases}\\
+P_{BO}\left(w_{i}\right) & =\begin{array}{cc}
+\frac{Count^{*}\left(w_{i}\right)}{\underset{i}{\sum}Count^{*}\left(w_{i}\right)} & w_{i}\in D=\left\{ w:Count\left(w\right)>0\right\} \backslash C\end{array}
+\end{align*}
+\]</p>
+
+<p>\[\tiny
+\alpha_{3}=1-\underset{A}{\sum}\left(\frac{Count^{*}\left(w_{i-3},w_{i-2},w_{i-1},w_{i}\right)}{\underset{i}{\sum}Count^{*}\left(w_{i-3},w_{i-2},w_{i-1},w_{i}\right)}\right)\quad\alpha_{2}=1-\underset{B}{\sum}\left(\frac{Count^{*}\left(w_{i-2},w_{i-1},w_{i}\right)}{\underset{i}{\sum}Count^{*}\left(w_{i-2},w_{i-1},w_{i}\right)}\right)\quad\alpha_{1}=1-\underset{C}{\sum}\left(\frac{Count^{*}\left(w_{i-1},w_{i}\right)}{\underset{i}{\sum}Count^{*}\left(w_{i-1},w_{i}\right)}\right)
+\]</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-5" style="background:;">
+  <hgroup>
+    <h2>How it works?</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Smoothing is implemented using two types of discounting:</p>
+
+<div style='float:left;width:48%;' class='centered'>
+  <ul>
+<li>When there are more than five \(\scriptsize{\left(Count-N_{Count}\right)}\) data points (where \(\scriptsize{N_{Count}}\) is the number of times that \(\scriptsize{Count}\) has been seen), a power law is fitted using the non-linear least squares Levenberg-Marquardt algorithm (see picture for example), and the Good-Turing formula for revised counts is used: \(\scriptsize{Count^{*}=\left(Count+1\right)\frac{N_{Count+1}}{N_{Count}}}\)</li>
+<li>Absolute discounting is used otherwise, i.e. \(\scriptsize{Count^{*}=Count-0.75}\)</li>
+</ul>
+
+</div>
+<div style='float:right;width:48%;'>
+  <div align=center>
+<img width= 100% src="assets/img/rplot.png"></img>
+</div>
+
+</div>
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-6" style="background:;">
+  <hgroup>
+    <h2>Model Accuracy</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>In order to calculate the model accuracy, 100 random text lines were extracted of each text file of the corpus. For each line read, four consecutive words were randomly selected. After discarding observations with NA values, the first three words were used as input for the Katz Back-Off algorithm. Then, the suggested word with highest probability was compared to the fourth word. The following table summarizes the results: </p>
+
+<table><thead>
+<tr>
+<th align="left">Text File</th>
+<th align="right">Number of random tests</th>
+<th align="right">Right guesses</th>
+<th align="right">Success (%)</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="left">News</td>
+<td align="right">98</td>
+<td align="right">17</td>
+<td align="right">17.35</td>
+</tr>
+<tr>
+<td align="left">Blogs</td>
+<td align="right">93</td>
+<td align="right">22</td>
+<td align="right">23.66</td>
+</tr>
+<tr>
+<td align="left">Twitter</td>
+<td align="right">93</td>
+<td align="right">16</td>
+<td align="right">17.20</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='NA'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='Instructions'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='How it works?'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='How it works?'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='How it works?'>
+         5
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=6 title='Model Accuracy'>
+         6
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- MathJax: Fall back to local if CDN offline but local image fonts are not supported (saves >100MB) -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']],
+        processEscapes: true
+      }
+    });
+  </script>
+  <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <!-- <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script> -->
+  <script>window.MathJax || document.write('<script type="text/x-mathjax-config">MathJax.Hub.Config({"HTML-CSS":{imageFont:null}});<\/script><script src="libraries/widgets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"><\/script>')
+</script>
+<!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>
